@@ -7,6 +7,8 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -41,7 +43,12 @@ class UserController extends Controller
 
     public function update_user(Request $request, $id)
         {
-        // dd($request->all());
+            $validated = $request->validate([
+                'first_name' => 'required|max:255',
+                'last_name' => 'required',
+                'email' => 'required|max:100',
+                'password' => 'required|min:8'
+            ]);
         $file = $request->file('img');
         if($file==''){
             $img = User::find($id)->value('image');
@@ -54,7 +61,6 @@ class UserController extends Controller
             $file->move($destinationPath,$pic);
         }
         $data = User::where('id',$id)->update(['first_name'=>$request->first_name,'last_name'=>$request->last_name, 'email' => $request->email,'image'=>$pic,'password'=>$request->password]);
-        // return redirect('users');
         return response()->json([
             'status'=>200,
             'message'=>'successfully updated'
@@ -76,16 +82,25 @@ class UserController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
-
-        $user = new User;
-        $user->first_name=$request->first_name;
-        $user->last_name=$request->last_name;
-        $user->email=$request->email;
-        $file = $request->file('img');
-        if($file=='') {
-            $user->image='user.jpg';
-        }
+        {
+            $validator = Validator::make($request->all(), [
+                'first_name' => 'required|max:50',
+                'last_name' => 'required|max:50',
+                'email' => 'required|max:100',
+                'password' => 'required|min:8'
+            ]);
+            if ($validator->fails()) {
+                $errors = $validator->errors();
+                return response()->json(['error'=>$errors->first()]);
+            }
+                $user = new User;
+                $user->first_name=$request->first_name;
+                $user->last_name=$request->last_name;
+                $user->email=$request->email;
+                $file = $request->file('img');
+                if($file=='') {
+                    $user->image='user.jpg';
+                }
         else{
             $user->image=$request->file('img')->getClientOriginalName();
             $destinationPath = public_path().'/images';
@@ -94,10 +109,9 @@ class UserController extends Controller
         $user->password=$request->password;
         $user->save();
         return response()->json([
-            'status'=>200,
-            'message'=>'student Added Successfully'
+            'success'=>200,
+            'message'=>'User Added Successfully'
         ]);
-        // return redirect('users');
         }
     /**
      * Display the specified resource.
@@ -152,15 +166,11 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        dd($id);
         $user = User::find($id);
         $user->delete();
-        return redirect('users');
-    }
-
-    public function deleteuser($id)
-    {
-        $user = User::find($id);
-        $user->delete();
+        return response()->json([
+            'status'=>200,
+            'message'=>'User deleted Successfully'
+        ]);
     }
 }

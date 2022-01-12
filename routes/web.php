@@ -22,7 +22,7 @@ Route::delete('deleteuser/{id}', [UserController::class,'deleteuser']);
 Route::get('get_users', [UserController::class,'get_users']);
 Route::get('get_users', [UserController::class,'get_users']);
 Route::get('get_user_to_edit/{id}',[UserController::class,'get_user_to_edit']);
-Route::PUT('update_user/{id}', [UserController::class,'update_user']);
+Route::post('update_user/{id}', [UserController::class,'update_user']);
 Route::resource('users',UserController::class);
 Route::resource('products',ProductController::class);
 // Backend Permissions

@@ -22,8 +22,8 @@
                     <th scope="col">Username</th>
                     <th scope="col">Email</th>
                     <th scope="col">Image</th>
-                    <th scope="col" style="border: none;"></th>
-                    <th scope="col" style="border: none;">Action</th>
+                    <th scope="col" style="border: none;">Edit</th>
+                    <th scope="col" style="border: none;">Delete</th>
                 </tr>
             </thead>
             <tbody>
@@ -74,20 +74,27 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    {{-- {{ route('users.store')}} --}}
-                    <form method="POST" id="add-user-form" enctype="multipart/form-data">
+                    @if($errors->any())
+                    @foreach ($errors->all() as $error)
+                        {{-- <li>{{$error}}</li> --}}
+                    @endforeach
+                    @endif
+                        <form method="POST" id="add-user-form" enctype="multipart/form-data">
                         @method('post')
                         @csrf
                         <div class="form-group">
                             <label for="name">First Name</label>
                             <input type="text" class="form-control" name="first_name" id="first_name"
                                 placeholder="First Name" required>
+                                <span class="text-danger">@error('first_name'){{$message}} @enderror</span>
                         </div>
 
                         <div class="form-group">
                             <label for="name">Last Name</label>
                             <input type="text" class="form-control" name="last_name" id="last_name"
                                 placeholder="Last Name" required>
+                                <span class="text-danger">@error('first_name'){{$message}} @enderror</span>
+                                
                         </div>
 
                         <div class="form-group">
@@ -105,6 +112,11 @@
                             <label for="name">Password</label>
                             <input type="password" class="form-control" name="password" id="password1"
                                 placeholder="Password" required>
+                                @if($errors->has('password'))
+                                <input type="hidden" id="password-error" value="pass">
+                                {{-- <div class="password-error">{{ $errors->first('password') }}</div> --}}
+                                @endif
+                                {{-- <span class="text-danger">@error('password'){{$message}} @enderror</span> --}}
                         </div>
                         <button class="btn btn-primary save-user-btn">Save changes</button>
                     </form>
@@ -127,7 +139,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form id="edit_user_form_submit" class="edit_user_form" enctype="multipart/form-data">
+                    <form method="PUT" id="edit_user_form_submit" class="edit_user_form" enctype="multipart/form-data">
                         @method('PUT')
                         {{-- @csrf --}}
                         <div class="form-group">
@@ -153,10 +165,11 @@
                         </div>
                         <div class="form-group">
                             <label for="name">Password</label>
-                            <input type="password" class="form-control password2" name="password" 
-                                placeholder="Password" required>
+                            <input type="password" class="form-control password2" name="password" placeholder="Password"
+                                required>
                         </div>
-                        <button style="background: rgb(53, 53, 107)" type="submit" class="btn btn-primary edit-save-btn">Save changes</button>
+                        <button style="background: rgb(53, 53, 107)" type="submit"
+                            class="btn btn-primary edit-save-btn">Save changes</button>
                     </form>
                 </div>
             </div>
@@ -183,7 +196,6 @@
         </div>
     </div>
 </x-app-layout>
-
 <script>
     // $(function() {
     //     $('body').on('click','.edit-user', function() {
@@ -196,10 +208,29 @@
     //         $('#edit_user').modal('show');
     //     });
     // });
+ 
     $(document).ready(function() {
+        // $('.save-user-btn').on('click',function(){
+        // err = $('#password-error').val();
+        // if(err === 'pass'){
+        //     alert(err);
+        // }
+        // else{
+        //     // console.log(err);
+        //     $('#password-error').val('');
+        //     alert(err);
+        // }
+        // if(err != 'undefined'){
+        //     alert(err);
+        //     // msg="password error";
+        //     // toastr.success(msg);
+        // }
+        // else{
+        //     console.log('hii');
+        // }
+        });
         // Fetch records using ajax
         fetch_users();
-
         function fetch_users() {
             $.ajax({
                 url: 'get_users',
@@ -210,12 +241,13 @@
                         $('tbody').append('<tr>\
                 <td>' + item.first_name + '</td>\
                 <td>' + item.last_name + '</td>\
+                <td>'+ item.first_name +' '+ item.last_name + '</td>\
                 <td>' + item.email + '</td>\
                 <td><img src="images/' + item.image + ' " alt="no image" width="100px" height="100px"/></td>\
                 <td>@can('update_user')<button value="' + item.id + '" class="btn-edit btn btn-primary btn-sm">Edit</button>@endcan</td>\
-                <td>@can('delete_user')<button value="' + item.id + '" class="btn-delete btn btn-danger btn-sm">Delete</button>@endcan</td>\
+                <td>@can('delete_user')<button  value="' + item.id + '" class="delete-btn btn-delete btn btn-danger btn-sm">Delete</button>@endcan</td>\
               </tr>');
-                    });
+                });
                 }
             });
         }
@@ -238,15 +270,14 @@
             });
             $.ajax({
                 type: 'DELETE',
-                url: 'deleteuser/' + user_delete_id,
+                url: 'users/'+user_delete_id,
                 success: function(response) {
                     $('#delete-modal').modal('hide');
+                    toastr.success(response.message);
                     fetch_users();
-                    console.log(response);
                 }
             });
         });
-
 
         // Updating Record
         $('body').on('click', '.btn-edit', function(e) {
@@ -268,17 +299,8 @@
         $('.edit_user_form').on('submit', function(e) {
             e.preventDefault();
             var user_id_to_edit = $('.set_user_edit_id').val();
-            // var path = $('.image-update').val();
-            // file = path.split('\\').pop();
-                var edit_form = $('.edit_user_form');
-                  let data = new FormData(this);
-            //     var data = {
-            //     'first_name': $('.first-name').val(),
-            //     'last_name': $('.last-name').val(),
-            //     'email': $('.email').val(),
-            //     'img': $('.image-update').val(),
-            //     'password': $('.password2').val()
-            // }
+            var edit_form = $('.edit_user_form');
+            let data = new FormData(this);
             console.log(data);
             $.ajaxSetup({
                 headers: {
@@ -288,30 +310,21 @@
             $.ajax({
                 type: 'POST',
                 url: 'update_user/' + user_id_to_edit,
-                // headers: {
-                // 'content-type': 'multipart/form-data',
-                // },
                 data: data,
                 contentType: false,
                 processData: false,
                 success: function(response) {
-                    // console.log(response);
                     $('#edit_user_modal').modal('hide');
+                    toastr.success(response.message);
                     $('.edit_user_form').find('input').val('');
                     fetch_users();
                 }
             });
         });
         // adding new students using ajax
-        $('.save-user-btn').on('click', function(e) {
+        $('#add-user-form').on('submit', function(e) {
             e.preventDefault();
-            var data = {
-                'first_name': $('#first_name').val(),
-                'last_name': $('#last_name').val(),
-                'email': $('#email').val(),
-                'image': $('#image').val(),
-                'password': $('#password1').val()
-            }
+            let data = new FormData(this);
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -321,17 +334,21 @@
                 url: '{{ route('users.store') }}',
                 type: 'POST',
                 data: data,
+                contentType: false,
+                processData: false,
                 dataType: 'json',
                 success: function(response) {
-                    if (response.status == 400) {} else {
-                        // $('.success-msg').text("User added Successfully");
+                    if (response.status == 200) {
                         $('#add-user-modal').modal('hide');
+                        toastr.success(response.message);
                         $('#add-user-form').find('input').val('');
                         fetch_users();
+                    } else {
+                        toastr.error(response.error);
                     }
                 }
             });
         });
         //  Add Records End
-    });
+    // });
 </script>

@@ -28,7 +28,6 @@ class RoleSeeder extends Seeder
         $staff = Role::create([
             'name'=>'Staff'
          ]);
-
         $staffPermissions = Permission::where('name','=',"view_user")->orwhere('name','=',"view_product")->get();
         $staff->syncPermissions($staffPermissions);
 

@@ -51,15 +51,10 @@ class ProductController extends Controller
             $destinationPath = public_path().'/images';
             $file->move($destinationPath,$product->image);
         }
-        // $file = $request->file('img');
-        // $product->image=$request->file('img')->getClientOriginalName();
-        // $destinationPath = public_path().'/images' ;
-        // $file->move($destinationPath,$product->image);
         $product->save();
-        // $data = User::create(['first_name'=>$request->first_name,'last_name'=>$request->last_name, 'email' => $request->email, 'password' => Hash::make($request->password)]);
+        toastr()->success('Product added Successfully');
         return redirect('products');
     }
-
     /**
      * Display the specified resource.
      *
@@ -102,6 +97,7 @@ class ProductController extends Controller
             $file->move($destinationPath,$pic);
         }
         $data = Product::where('id',$id)->update(['name'=>$request->product_name,'description'=>$request->product_description, 'price' => $request->product_price,'status'=>$request->product_status,'image'=>$pic]);
+        toastr()->success('Product Updated Successfully');
         return redirect('products');
     }
     /**
@@ -114,6 +110,7 @@ class ProductController extends Controller
     {
         $product = Product::find($id);
         $product->delete();
+        toastr()->success('Product Deleted Successfully');
         return redirect('products');
     }
 }
