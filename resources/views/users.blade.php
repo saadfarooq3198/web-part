@@ -139,9 +139,9 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form method="PUT" id="edit_user_form_submit" class="edit_user_form" enctype="multipart/form-data">
-                        @method('PUT')
-                        {{-- @csrf --}}
+                    <form  method = 'post' id="edit_user_form_submit" class="edit_user_form" enctype="multipart/form-data">
+                         @csrf
+                         @method('put')
                         <div class="form-group">
                             <label for="name">First Name</label>
                             <input type="text" class="form-control first-name" name="first_name"
@@ -165,8 +165,7 @@
                         </div>
                         <div class="form-group">
                             <label for="name">Password</label>
-                            <input type="password" class="form-control password2" name="password" placeholder="Password"
-                                required>
+                            <input type="password" class="form-control password2" name="password" placeholder="Password">
                         </div>
                         <button style="background: rgb(53, 53, 107)" type="submit"
                             class="btn btn-primary edit-save-btn">Save changes</button>
@@ -210,25 +209,7 @@
     // });
  
     $(document).ready(function() {
-        // $('.save-user-btn').on('click',function(){
-        // err = $('#password-error').val();
-        // if(err === 'pass'){
-        //     alert(err);
-        // }
-        // else{
-        //     // console.log(err);
-        //     $('#password-error').val('');
-        //     alert(err);
-        // }
-        // if(err != 'undefined'){
-        //     alert(err);
-        //     // msg="password error";
-        //     // toastr.success(msg);
-        // }
-        // else{
-        //     console.log('hii');
-        // }
-        });
+       
         // Fetch records using ajax
         fetch_users();
         function fetch_users() {
@@ -284,13 +265,20 @@
             e.preventDefault();
             var edit_id = $(this).val();
             $('#edit_user_modal').modal('show');
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
             $.ajax({
-                type: 'GET',
-                url: 'get_user_to_edit/' + edit_id,
+                type: 'get',
+                url: 'users/'+edit_id+'/edit',
+                dataType: 'json',
                 success: function(response) {
                     $('.first-name').val(response.user.first_name);
                     $('.last-name').val(response.user.last_name);
                     $('.email').val(response.user.email);
+                    $('.password2').val(response.user.password);
                     $('.set_user_edit_id').val(edit_id);
                 }
             });
@@ -308,8 +296,8 @@
                 }
             });
             $.ajax({
-                type: 'POST',
-                url: 'update_user/' + user_id_to_edit,
+                type: 'post',
+                url: 'users/' + user_id_to_edit,
                 data: data,
                 contentType: false,
                 processData: false,
@@ -338,17 +326,16 @@
                 processData: false,
                 dataType: 'json',
                 success: function(response) {
-                    if (response.status == 200) {
                         $('#add-user-modal').modal('hide');
                         toastr.success(response.message);
                         $('#add-user-form').find('input').val('');
                         fetch_users();
-                    } else {
-                        toastr.error(response.error);
-                    }
+                },
+                error:function(request,status,error){
+                    toastr.error(request.responseJSON.errors);
                 }
             });
         });
         //  Add Records End
-    // });
+    });
 </script>

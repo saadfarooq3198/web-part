@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreUser;
+use App\Http\Requests\UpdateUser;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -28,42 +30,10 @@ class UserController extends Controller
     }
 
     public function get_users(){
+
         $allusers = User::all();
         return response()->json([
             'users'=>$allusers
-        ]);
-    }
-    public function get_user_to_edit($id){
-        $user = User::find($id);
-        return response()->json([
-            'status'=>200,
-            'user'=>$user
-        ]);
-    }
-
-    public function update_user(Request $request, $id)
-        {
-            $validated = $request->validate([
-                'first_name' => 'required|max:255',
-                'last_name' => 'required',
-                'email' => 'required|max:100',
-                'password' => 'required|min:8'
-            ]);
-        $file = $request->file('img');
-        if($file==''){
-            $img = User::find($id)->value('image');
-            $pic=$img;
-        }
-        else{
-            $pic = $request->file('img');
-            $pic=$request->file('img')->getClientOriginalName();
-            $destinationPath = public_path().'/images';
-            $file->move($destinationPath,$pic);
-        }
-        $data = User::where('id',$id)->update(['first_name'=>$request->first_name,'last_name'=>$request->last_name, 'email' => $request->email,'image'=>$pic,'password'=>$request->password]);
-        return response()->json([
-            'status'=>200,
-            'message'=>'successfully updated'
         ]);
     }
     /**
@@ -81,37 +51,26 @@ class UserController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
-        {
-            $validator = Validator::make($request->all(), [
-                'first_name' => 'required|max:50',
-                'last_name' => 'required|max:50',
-                'email' => 'required|max:100',
-                'password' => 'required|min:8'
-            ]);
-            if ($validator->fails()) {
-                $errors = $validator->errors();
-                return response()->json(['error'=>$errors->first()]);
-            }
+    public function store(StoreUser $request)
+        { 
                 $user = new User;
-                $user->first_name=$request->first_name;
-                $user->last_name=$request->last_name;
-                $user->email=$request->email;
+                $user->first_name = $request->first_name;
+                $user->last_name = $request->last_name;
+                $user->email = $request->email;
                 $file = $request->file('img');
                 if($file=='') {
                     $user->image='user.jpg';
                 }
-        else{
-            $user->image=$request->file('img')->getClientOriginalName();
-            $destinationPath = public_path().'/images';
-            $file->move($destinationPath,$user->image);
-        }
-        $user->password=$request->password;
-        $user->save();
-        return response()->json([
-            'success'=>200,
-            'message'=>'User Added Successfully'
-        ]);
+                else{
+                    $user->image=$request->file('img')->getClientOriginalName();
+                    $file->store('public/images');
+                }
+                $user->password=$request->password;
+                $user->save();
+                return response()->json([
+                    'success'=>200,
+                    'message'=>'User Added Successfully'
+                ]);
         }
     /**
      * Display the specified resource.
@@ -132,7 +91,11 @@ class UserController extends Controller
      */
     public function edit($id)
     {
-        //
+        $user = User::find($id);
+        return response()->json([
+            'status'=>200,
+            'user'=>$user
+        ]);
     }
 
     /**
@@ -142,21 +105,30 @@ class UserController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateUser $request, $id)
     {
-
-        $file = $request->file('img');
-        if($file==''){
-            $img = User::find($id)->value('image');
-            $pic=$img;
-        }
-        else{
+        $user = User::find($id);
+        if($request->has('img')){
+            $file = $request->file('img');
             $pic=$request->file('img')->getClientOriginalName();
-            $destinationPath = public_path().'/images';
-            $file->move($destinationPath,$pic);
+            $file->store('public/images');
+            // $destinationPath = public_path().'/images';
+            // $file->move($destinationPath,$pic);
+            $user->update(['image'=>$pic]);
         }
-        $data = User::where('id',$id)->update(['first_name'=>$request->first_name,'last_name'=>$request->last_name, 'email' => $request->email,'image'=>$pic,'password'=>$request->password]);
-        return redirect('users');
+            if($request->password !=''){
+                $pass=$request->password;
+                $user->update(['password'=>$pass]); 
+            }
+                 $user->update([
+                    'first_name'=>$request->first_name,
+                    'last_name'=>$request->last_name,
+                    'email' => $request->email
+                    ]);
+                    return response()->json([
+                        'status'=>200,
+                        'message'=>'successfully updated'
+                    ]);
     }
     /**
      * Remove the specified resource from storage.
