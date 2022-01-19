@@ -14,7 +14,7 @@
     <td class="product-name">{{$category->name}}</td>
     <td class="product-description">{{$category->description}}</td>
     {{-- $count = App\Models\Product::where('category_id',$category->id)->count('category_id')  --}}
-    <td>{{$count = App\Models\Product::where('category_id',$category->id)->count('category_id') }}</td>
+    <td>{{ $category->products_count }}</td>
     <td style="border: none">
           @can('update_product')
           <button href="{{$category->id}}" class="btn btn-dark btn-sm edit-product">Edit

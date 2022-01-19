@@ -16,18 +16,18 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $data = Category::all();
+        $data = Category::withCount('products')->get();
         return view('category',compact('data'));
     }
 
-    function fetch_category(Request $request)
-    {
-     if($request->ajax())
-     {
-        $data = DB::table('categories')->all();
-         return view('category_chaild_paginate',compact('data'))->render();
-     }
-    }
+    // function fetch_category(Request $request)
+    // {
+    //  if($request->ajax())
+    //  {
+    //     $data = Category::withCount('products')->get();
+    //      return view('category_chaild_paginate',compact('data'))->render();
+    //  }
+    // }
 
     /**
      * Show the form for creating a new resource.
