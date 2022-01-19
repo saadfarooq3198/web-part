@@ -8,13 +8,24 @@
                 <button class="ml-5"><a href="users">Users</a></button>
             @endcan
             <button class="ml-5"><a href="products">Products</a></button>
+            <button class="ml-5"><a href="categories">Categories</a></button>
         </h2>
     </x-slot>
     <div class="container">
+        <div class="d-flex justify-content-between my-2">
         @can('add_user')
-            <button class="btn btn-primary m1-5 my-2" data-toggle="modal" data-target="#add-user-modal">Add User</button>
-        @endcannot
-        <table class="table table-bordered">
+            <button class="btn btn-primary" data-toggle="modal" data-target="#add-user-modal">Add User</button>
+        @endcan
+        
+        <div class="form-group">
+            <input type="text" class="form-control" name="search" id="search"
+                placeholder="Search">
+        </div>
+    </div>
+    <span id="table">
+        @include('user_chaild_pagination')
+      </span>
+        {{-- <table class="table table-bordered">
             <thead>
                 <tr>
                     <th scope="col">First Name</th>
@@ -27,41 +38,10 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td id="manetd"></td>
-                </tr>
-                {{-- @foreach ($users as $user) --}}
-                {{-- @can('view_product')
-                @endcan --}}
-                {{-- <tr class="user-row">
-                        <td class="first-name">{{$user->first_name}}</td>
-                        <td class="last-name">{{$user->last_name}}</td>
-                        <td>{{$user->first_name. '  ' .$user->last_name }}</td>
-                        <td class="email">{{$user->email}}</td>
-                        <td><img src="{{'images/' .$user->image}}" alt="no image" width="100px" height="100px"/></td>
-                        <td style="border: none">
-                            @can('update_user')
-                            <button href="{{$user->id}}" class="btn btn-dark btn-sm edit-user">Edit
-                            </button>
-                            @endcan
-                            <td style="border: none">
-                                <form method="post" action=" {{ route('users.destroy', $user->id) }}">
-                                    @method('DELETE')
-                                    @csrf
-                                    @can('delete_user')
-                                <button type="submit" class="btn btn-danger btn-sm" style="background: red">Delete</button>
-                                @endcan
-                                </form>
-                            </td>
-                        </td>               
-                    </tr> --}}
-                {{-- @endforeach --}}
+
             </tbody>
-        </table>
+        </table> --}}
     </div>
-
-
-
     <!--Add user Modal -->
     <div class="modal fade" id="add-user-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
         aria-hidden="true">
@@ -125,8 +105,6 @@
         </div>
     </div>
 
-
-
     <!--Edit user Modal -->
     <div class="modal fade" id="edit_user_modal" tabindex="-1" role="dialog"
         aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
@@ -158,7 +136,6 @@
                             <label for="email">Email</label>
                             <input type="email" class="form-control email" name="email" placeholder="Email" required>
                         </div>
-
                         <div class="form-group">
                             <label for="name">Image</label>
                             <input type="file" class="form-control image-update" name="img">
@@ -196,22 +173,26 @@
     </div>
 </x-app-layout>
 <script>
-    // $(function() {
-    //     $('body').on('click','.edit-user', function() {
-    //         var userId = $(this).attr('href');
-    //         let row = $(this).parents('.user-row');
-    //         $("#edit_user_form").attr('action', 'users/' + userId);
-    //         $("#edit_user_form").find('.first-name').val(row.find('.first-name').text());
-    //         $("#edit_user_form").find('.last-name').val(row.find('.last-name').text());
-    //         $("#edit_user_form").find('.email').val(row.find('.email').text());
-    //         $('#edit_user').modal('show');
-    //     });
-    // });
- 
+         // AJAX Search Start
+         $('#search').on('keyup',function(){
+            $value=$(this).val();
+            $.ajaxSetup({ headers: { 'csrftoken' : '{{ csrf_token() }}' } });
+            $.ajax({
+            type : 'get',
+            url : 'search',
+            data:{'search':$value},
+            success: function(response) {
+                $('#table').html(response);
+                },
+                error:function(request,status,error){
+                    console.log("not found");
+                }
+            });
+            });
+        // AJAX Search End
     $(document).ready(function() {
-       
         // Fetch records using ajax
-        fetch_users();
+        // fetch_users();
         function fetch_users() {
             $.ajax({
                 url: 'get_users',
@@ -305,7 +286,7 @@
                     $('#edit_user_modal').modal('hide');
                     toastr.success(response.message);
                     $('.edit_user_form').find('input').val('');
-                    fetch_users();
+                    // fetch_users();
                 }
             });
         });
@@ -337,5 +318,26 @@
             });
         });
         //  Add Records End
+
+    // pagination section
+    $(document).on('click', '.pagination nav  a', function(event){
+      event.preventDefault(); 
+      var page = $(this).attr('href').split('page=')[1];
+      fetch_data(page);
+   });
+  
+   function fetch_data(page)
+   {
+    var _token = $("input[name=_token]").val();
+    $.ajax({
+        url:"{{ route('pagination.fetch_user') }}",
+        method:"POST",
+        data:{_token:_token, page:page},
+        success:function(data)
+        {
+         $('#table').html(data);
+        }
+      });
+   }
     });
 </script>

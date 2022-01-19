@@ -13,61 +13,35 @@
     </x-slot>
     <div class="container">
         @can('add_product')
-            <button class="btn btn-primary my-2" data-toggle="modal" data-target="#add_user">Add Product</button>
+            <button class="btn btn-primary my-2" data-toggle="modal" data-target="#add_category">Add Category</button>
         @endcan
         <span id="table">
-          @include('pagination_child')
+          @include('category_chaild_paginate')
         </span>
     </div>
     <!--Add user Modal -->
-<div class="modal fade" id="add_user" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+<div class="modal fade" id="add_category" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLongTitle">Add New Product</h5>
+          <h5 class="modal-title" id="exampleModalLongTitle">Add New Category</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
         <div class="modal-body">
-          <form method="POST" action="{{ route('products.store')}}" enctype="multipart/form-data">
+          <form method="POST" action="{{ route('categories.store')}}" enctype="multipart/form-data">
             @method('post')
               @csrf
               <div class="form-group">
                 <label for="name">Name</label>
-                <input type="text" class="form-control" name="product_name"  placeholder="Name" required>
+                <input type="text" class="form-control" name="name"  placeholder="Name" required>
               </div>
               <div class="form-group">
                 <label for="name">Description</label>
-                <input type="text" class="form-control" name="product_description"  placeholder="Description" required>
+                <input type="text" class="form-control" name="description"  placeholder="Description" required>
               </div>
-              <div class="form-group">
-                <label for="email">Price</label>
-                <input type="text" class="form-control" name="product_price"  placeholder="Price" required>
-              </div>
-
-              <div class="form-group">
-                <label for="cars">Product Category</label>
-                <select name="category">
-                    {{ $categories= App\Models\Category::all() }}
-                    @foreach($categories as $category)
-                    <option value="{{ $category->id}}">{{ $category->name}}</option>
-                    @endforeach
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label for="cars">Status</label>
-                <select name="product_status">
-                    <option value="enable">Enable</option>
-                    <option value="disable">Disable</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="name">Image</label>
-                <input type="file" class="form-control" name="img">
-              </div>
-              <button   class="btn btn-primary">Save changes</button>
+              <button class="btn btn-primary">Save</button>
           </form>
         </div>
       </div>
@@ -78,7 +52,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLongTitle">Edit Product</h5>
+          <h5 class="modal-title" id="exampleModalLongTitle">Add New Product</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -152,6 +126,5 @@
         }
       });
    }
-  
   });
 </script>

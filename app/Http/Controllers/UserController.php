@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreUser;
 use App\Http\Requests\UpdateUser;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -25,8 +26,28 @@ class UserController extends Controller
     }
     public function index()
     {
-        $users = User::all();
+        $users = User::latest()->paginate(3);
         return view('users',compact('users',$users));
+    }
+
+    function fetch_user(Request $request)
+    {
+     if($request->ajax())
+     {
+        $users = DB::table('users')->paginate(3);
+         return view('user_chaild_pagination', compact('users'))->render();
+     }
+    }
+
+    public function search(Request $request)
+    { 
+        $users = User::where('first_name','LIKE','%'.$request->search.'%')
+        ->orWhere('last_name','LIKE','%'.$request->search.'%')
+        ->orWhere('email','LIKE','%'.$request->search.'%')->paginate(3);
+        return view('user_chaild_pagination', compact('users'))->render();
+        // return response()->json([
+        //     'users'=>$users
+        // ]);
     }
 
     public function get_users(){

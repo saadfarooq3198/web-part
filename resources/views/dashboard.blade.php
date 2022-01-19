@@ -8,6 +8,7 @@
             <button class="ml-5"><a href="users">Users</a></button>
             @endcan
             <button class="ml-5"><a href="products">Products</a></button>
+            <button class="ml-5"><a href="categories">Categories</a></button>
         </h2>
     </x-slot>
 

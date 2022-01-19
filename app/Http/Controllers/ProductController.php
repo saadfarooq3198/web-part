@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,9 +17,19 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::all();
-        return view('products')->with('products',$products);
+        $data = Product::paginate(10);
+        return view('products',compact('data'));
     }
+
+    function fetch(Request $request)
+    {
+     if($request->ajax())
+     {
+        $data = DB::table('products')->paginate(10);
+         return view('pagination_child', compact('data'))->render();
+     }
+    }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -28,7 +39,6 @@ class ProductController extends Controller
     {
         //
     }
-
     /**
      * Store a newly created resource in storage.
      *
@@ -41,6 +51,7 @@ class ProductController extends Controller
         $product->name=$request->product_name;
         $product->description=$request->product_description;
         $product->price=$request->product_price;
+        $product->category_id=$request->category;
         $product->status=$request->product_status;
         $file = $request->file('img');
         if($file==''){
